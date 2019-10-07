@@ -1,4 +1,6 @@
-# babel-plugin-transform-react-remove-prop-types
+# babel-plugin-transform-class-remove-static-properties
+
+> Fork: Based on original **babel-plugin-transform-react-remove-prop-types**, babel-plugin-transform-class-remove-static-properties is use to remove `props` from Nautil component. And you can pass `properties` option to remove any other static properties of classes.
 
 > Remove unnecessary React propTypes from the production build.
 
@@ -240,6 +242,11 @@ You would use:
 ```js
 createReactClassName: 'createClass'
 ```
+
+### properties [forked feature]
+
+Array. Remove certain static properties of a class. You should give the names of static properties which you want to remove.
+
 
 ## Is it safe?
 

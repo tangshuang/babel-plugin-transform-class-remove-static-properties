@@ -34,15 +34,15 @@ function isReactClass(superClass, scope, globalOptions) {
 
   if (isPathReactClass(superClass, globalOptions)) {
     answer = true
-  } else if (superClass.node.name) {
-    // Check for inheritance
+  }
+  else if (superClass.node.name) {
     const className = superClass.node.name
     const binding = scope.getBinding(className)
     if (!binding) {
       answer = false
-    } else {
+    }
+    else {
       const bindingSuperClass = binding.path.get('superClass')
-
       if (isPathReactClass(bindingSuperClass, globalOptions)) {
         answer = true
       }
@@ -95,28 +95,22 @@ function memberExpressionRootIdentifier(path) {
 
 export default function(api) {
   const { template, types, traverse } = api
-
   const nestedIdentifiers = new Set()
   const removedPaths = new WeakSet()
   const collectNestedIdentifiers = {
     Identifier(path) {
+      // foo.bar
       if (path.parent.type === 'MemberExpression') {
-        // foo.bar
-
         const root = memberExpressionRootIdentifier(path)
         if (root) {
           nestedIdentifiers.add(root.node.name)
         }
-
         return
       }
 
-      if (
-        path.parent.type === 'ObjectProperty' &&
-        (path.parent.key === path.node || path.parent.shorthand)
-      ) {
-        // { foo: 'bar' }
-        // { foo }
+      // { foo: 'bar' }
+      // { foo }
+      if (path.parent.type === 'ObjectProperty' && (path.parent.key === path.node || path.parent.shorthand)) {
         return
       }
 
@@ -127,23 +121,21 @@ export default function(api) {
   return {
     visitor: {
       Program(programPath, state) {
+        const { properties = ['propTypes', 'props'] } = state.opts
+
         let ignoreFilenames
         let classNameMatchers
 
         if (state.opts.ignoreFilenames) {
           ignoreFilenames = new RegExp(state.opts.ignoreFilenames.join('|'), 'i')
-        } else {
-          ignoreFilenames = undefined
         }
 
         if (state.opts.classNameMatchers) {
           classNameMatchers = new RegExp(state.opts.classNameMatchers.join('|'))
-        } else {
-          classNameMatchers = undefined
         }
 
         const globalOptions = {
-          visitedKey: `transform-react-remove-prop-types${Date.now()}`,
+          visitedKey: `remove-prop-${Date.now()}`,
           unsafeWrapTemplate: template(
             `
               if (process.env.NODE_ENV !== "production") {
@@ -173,7 +165,7 @@ export default function(api) {
           ignoreFilenames,
           types,
           removeImport: state.opts.removeImport || false,
-          libraries: (state.opts.additionalLibraries || []).concat('prop-types'),
+          libraries: (state.opts.additionalLibraries || []).concat(['prop-types', 'tyshemo']),
           classNameMatchers,
           createReactClassName: state.opts.createReactClassName || 'createReactClass',
         }
@@ -213,7 +205,7 @@ export default function(api) {
             exit(path) {
               const node = path.node
 
-              if (node.computed || node.key.name !== 'propTypes') {
+              if (node.computed || !properties.includes(node.key.name)) {
                 return
               }
 
@@ -243,7 +235,7 @@ export default function(api) {
           ClassProperty(path) {
             const { node, scope } = path
 
-            if (node.key.name === 'propTypes') {
+            if (properties.includes(node.key.name)) {
               const pathClassDeclaration = scope.path
 
               if (isReactClass(pathClassDeclaration.get('superClass'), scope, globalOptions)) {
@@ -260,11 +252,7 @@ export default function(api) {
           AssignmentExpression(path) {
             const { node, scope } = path
 
-            if (
-              node.left.computed ||
-              !node.left.property ||
-              node.left.property.name !== 'propTypes'
-            ) {
+            if (node.left.computed || !node.left.property || !properties.includes(node.left.property.name)) {
               return
             }
 

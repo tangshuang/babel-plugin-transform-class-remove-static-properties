@@ -124,5 +124,5 @@ export default function remove(path, globalOptions, options) {
     return
   }
 
-  throw new Error(`transform-react-remove-prop-type: unsupported mode ${mode}.`)
+  throw new Error(`unsupported mode ${mode}.`)
 }

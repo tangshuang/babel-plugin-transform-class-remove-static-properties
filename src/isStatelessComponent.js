@@ -30,7 +30,7 @@ function isReturningJSXElement(path, iteration = 0) {
   }
 
   if (iteration > 20) {
-    throw new Error('transform-react-remove-prop-type: infinite loop detected.')
+    throw new Error('infinite loop detected.')
   }
 
   let visited = false

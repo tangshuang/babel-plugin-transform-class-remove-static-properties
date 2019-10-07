@@ -14,7 +14,7 @@
 ## Installation
 
 ```sh
-npm install --save-dev babel-plugin-transform-react-remove-prop-types
+npm install --save-dev babel-plugin-transform-class-remove-static-properties
 ```
 
 ## The problem solved
